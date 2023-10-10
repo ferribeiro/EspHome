@@ -1,0 +1,43 @@
+esphome:
+  name: bt-px-sonoff-esp32
+  friendly_name: BT-PX-SonOff-ESP32
+
+esp32:
+  board: esp32dev
+
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
+      CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"  
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "D56NXp80PFU6JYvbD65TIT2YWuh1sZpcre826fMu+uo="
+
+ota:
+  password: "cac2371c0261d084cd91311e02a88259"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Bt-Px-Sonoff-Esp32"
+    password: "12345678"
+
+captive_portal:
+
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: true
+
+bluetooth_proxy:
+  active: true  
