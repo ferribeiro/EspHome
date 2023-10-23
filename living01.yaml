@@ -1,0 +1,188 @@
+esphome:
+  name: living01
+
+esp8266:
+  board: esp01_1m
+  
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  baud_rate: 0    #Desliga serial dos GPIO1
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "VcM4Cdn2D1yUUNB4SR+p3EyOU/LPHAp7Vbg2N6ctXqk="
+
+ota:
+  password: "80cd3726a15c892f21251df6c2626f74"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  manual_ip:
+    static_ip: 192.168.0.213
+    gateway: 192.168.0.1
+    subnet: 255.255.255.0
+    dns1: 8.8.8.8
+    dns2: 192.168.0.1
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "living01"
+    password: "12345678"
+
+captive_portal:
+
+################################# BOTOES ###################################
+
+binary_sensor:   # ----------------BTN 1-----------
+  - platform: gpio
+    pin:
+      number: GPIO3
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "BTN1-abc"
+#------------------------------------------------
+    on_multi_click:
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+           - light.toggle: triac1_liv_stairs
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+          light.toggle: triac2_liv_right
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 50ms
+        then:
+         light.toggle: triac3_liv_back
+
+
+  - platform: gpio
+    pin:
+      number: GPIO5   # ----------------BTN 4-----------
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "BTN4"
+    on_press:
+#      - light.toggle: triac6_s_garden_pot_pump
+      - switch.toggle: triac6_side_garden_pot_pump
+
+  - platform: gpio
+    pin:
+      number: GPIO4   # ----------------BTN 5-----------
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "BTN5"
+#    on_press:
+#      - light.toggle: triac5_s_garden_soil_spots
+#------------------------------------------------
+    on_multi_click:
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+           - light.toggle: triac5_s_garden_soil_spots
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+           - light.toggle: triac4_wall_right
+
+#------------------------------------------------
+
+light:
+  - platform: binary
+    name: "luz escada da sala"
+    id: triac1_liv_stairs
+    output: triac1_living_stairs
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "luzes lateral da sala"
+    id: triac2_liv_right
+    output: triac2_living_right
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "luzes fundo da sala"
+    id: triac3_liv_back
+    output: triac3_living_back
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "iluminação do Muro direito"
+    id: triac4_wall_right
+    output: triac4_right_wall
+    icon: "mdi:wall-sconce"
+
+  - platform: binary
+    name: "spot solo jardim lateral"
+    id: triac5_s_garden_soil_spots
+    output: triac5_side_garden_soil_spots
+    icon: "mdi:lightbulb-spot"
+
+#  - platform: binary
+#    name: "bomba dos vasos jardim lateral"
+#    id: triac6_s_garden_pot_pump
+#    output: triac6_side_garden_pot_pump
+#    icon: "mdi:fan"
+  # -------------------------------------
+
+output:
+  - platform: gpio
+    id: triac1_living_stairs
+    pin: GPIO15
+
+  - platform: gpio
+    id: triac2_living_right
+    pin: GPIO13
+
+  - platform: gpio
+    id: triac3_living_back
+    pin: GPIO12
+
+  - platform: gpio
+    id: triac4_right_wall
+    pin: GPIO02
+
+  - platform: gpio
+    id: triac5_side_garden_soil_spots
+    pin:  GPIO14
+
+ # - platform: gpio
+ #   id: triac6_side_garden_pot_pump
+ #   pin:  GPIO16
+# --------------------------------------------------------------------------
+
+switch:
+
+  - platform: gpio
+    name: "bomba dos vasos jardim lateral"
+    icon: "mdi:fan"
+    id: triac6_side_garden_pot_pump
+    pin: GPIO16

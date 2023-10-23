@@ -1,0 +1,373 @@
+esphome:
+  name: lazer-esp32
+  friendly_name: lazer-esp32
+
+esp32:
+  board: esp32dev
+
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
+      CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"
+  
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  baud_rate: 0    #Desliga serial dos GPIO1
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "/ELIrX9Ev7NVKN3ETNdqSFH5we8aNK1uj6wLkEpTGa8="
+
+ota:
+  password: "c50a35f635e583a55548f3b6e17fe8fc"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  manual_ip:
+    static_ip: 192.168.0.218 #alterar para .218
+    gateway: 192.168.0.1
+    subnet: 255.255.255.0
+    dns1: 8.8.8.8
+    dns2: 192.168.0.1
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "lazer-esp32"
+    password: "12345678"
+
+captive_portal:
+
+############################### BT PROXY ###################################
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: true
+
+bluetooth_proxy:
+  active: true  
+
+################################# BOTOES ###################################
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO39   # ----------------BTN 1_ABC-----------
+      mode:
+        input: true
+#        pullup: true
+      inverted: true
+    name: "BTN1-abcd"
+#------------------------------------------------
+    on_multi_click:
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+           - light.toggle: triac1_lazer_nocturnal_spots
+           - light.toggle: triac3_lazer_spots_tv
+           - light.toggle: triac2_lazer_spots
+           - light.toggle: triac4_lazer_plafon
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+          light.toggle: triac1_lazer_nocturnal_spots
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 50ms
+        then:
+ #        switch.toggle: triac3_spots_tv
+#------------------------------------------------
+
+  - platform: gpio
+    pin:
+      number: GPIO4   # ----------------BTN 4_D-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN4-plafons"
+    on_press:
+      - light.toggle: triac4_lazer_plafon
+
+  - platform: gpio
+    pin:
+      number: GPIO34   # ----------------BTN 5_E-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN5-leds"
+    on_press:
+      - light.toggle: relay2_lazer_square_LED
+
+  - platform: gpio
+    pin:
+      number: GPIO1   # ----------------BTN 6_F-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN6-pendentes"
+    on_press:
+      - light.toggle: triac5_lazer_3_outstandings
+
+  - platform: gpio
+    pin:
+      number: GPIO14   # ----------------BTN 7-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN7-quintal"
+    on_press:
+      - light.toggle: relay4_lazer_backyard_spotlight
+
+  - platform: gpio
+    pin:
+      number: GPIO16   # ----------------BTN 8-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN8-jardim"
+    on_press:
+      - light.toggle: relay5_lazer_garden_spotlight
+
+  - platform: gpio
+    pin:
+      number: GPIO18   # ----------------BTN 9-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN9-laser"
+    on_press:
+      - switch.toggle: relay6_lazer_laser
+
+  - platform: gpio
+    pin:
+      number: GPIO21   # ----------------BTN 10-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN10-exaustor"
+    on_press:
+      - switch.toggle: relay1_lazer_barbecue_exhaust
+
+  - platform: gpio
+    pin:
+      number: GPIO35   # ----------------BTN 11-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN11-spots-coifa"
+    on_press:
+      - light.toggle: triac6_lazer_spots_coif
+
+  - platform: gpio
+    pin:
+      number: GPIO26   # ----------------BTN 12-----------
+      mode:
+        input: true
+      inverted: true
+    name: "BTN12-arandelas-externas-lazer"
+    on_press:
+      - light.toggle: relay3_lazer_outdoor_sconces
+
+  - platform: gpio
+    pin:
+      number: GPIO36   # ----------------BTN 13-----------
+      mode:
+        input: true
+        output: false
+        open_drain: false
+        pulldown: false
+      inverted: false
+    name: "Porta de Vidro da Area Lazer"
+    device_class: door
+    filters:
+    - delayed_on: 40ms
+    disabled_by_default: false
+
+#--------------------------- SOMENTE D1 MINI -------------------
+#  - platform: gpio
+#    pin:
+#      number: GPIO9   # ----------------BTN 14-----------
+#      mode:
+#        input: true
+#       pullup: true
+#      inverted: true
+#    name: "BTN 14"
+#    on_press:
+#      - switch.toggle: triac_9
+
+
+light:
+  - platform: binary
+    name: "Spots Noturnos"
+    id: triac1_lazer_nocturnal_spots
+    output: triac1_nocturnal_spots
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "Spots Dicroicas"
+    id: triac2_lazer_spots
+    output: triac2_spots
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "Spots TV"
+    id: triac3_lazer_spots_tv
+    output: triac3_spots_tv
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "Plafon"
+    id: triac4_lazer_plafon
+    output: triac4_plafon
+    icon: "mdi:wall-sconce-flat"
+
+  - platform: binary
+    name: "3 pendentes"
+    id: triac5_lazer_3_outstandings
+    output: triac5_3_outstandings
+    icon: "mdi:vanity-light"
+
+  - platform: binary
+    name: "Spots Coifa"
+    id: triac6_lazer_spots_coif
+    output: triac6_spots_coif
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "Luz Negra"
+    id: triac7_lazer_black_flood_light
+    output: triac7_black_flood_light
+    icon: "mdi:light-flood-down"
+
+  - platform: binary
+    name: "Perfil Led"
+    id: relay2_lazer_square_LED
+    output: relay2_square_LED
+    icon: "mdi:led-strip-variant"
+
+  - platform: binary
+    name: "Arandelas Externas"
+    id: relay3_lazer_outdoor_sconces
+    output: relay3_outdoor_sconces
+    icon: "mdi:wall-sconce-round"
+
+  - platform: binary
+    name: "Holofotes Quintal"
+    id: relay4_lazer_backyard_spotlight
+    output: relay4_backyard_spotlight
+    icon: "mdi:light-flood-down"
+
+  - platform: binary
+    name: "Holofotes Jardim"
+    id: relay5_lazer_garden_spotlight
+    output: relay4_garden_spotlight
+    icon: "mdi:light-flood-down"
+
+# -------------------------------------
+
+output:
+  - platform: gpio
+    id: triac1_nocturnal_spots
+    pin: GPIO2 #K2/T3 ### TRIAC ####
+
+  - platform: gpio
+    id: triac2_spots
+    pin: GPIO15 #K1/T2 ### TRIAC ####
+
+  - platform: gpio
+    id: triac3_spots_tv
+    pin: GPIO12 #K9/T17 ### TRIAC ####
+
+  - platform: gpio
+    id: triac4_plafon
+    pin: GPIO33 #K7/*T14 ### TRIAC ####
+
+  - platform: gpio
+    id: triac5_3_outstandings
+    pin: GPIO25 #K14/*T28 ### TRIAC ####
+
+  - platform: gpio
+    id: triac6_spots_coif
+    pin: GPIO19 #K11/*T22 ### TRIAC ####
+
+  - platform: gpio
+    id: triac7_black_flood_light
+    pin: GPIO27 #K13/*T25 ### TRIAC ####
+
+  - platform: gpio
+    id: relay2_square_LED
+    pin: GPIO17   #K8 ### RELE ####
+
+  - platform: gpio
+    id: relay3_outdoor_sconces
+    pin: GPIO23   #K5 ### RELE ####
+
+  - platform: gpio
+    id: relay4_backyard_spotlight
+    pin: GPIO5   #K6 ### RELE ####
+
+  - platform: gpio
+    id: relay4_garden_spotlight
+    pin: GPIO3   #K3 ### RELE ####
+# --------------------------------------------------------------------------
+
+switch:
+
+  - platform: gpio
+    name: "Globos"
+    icon: "mdi:globe-light"
+    id: triac8_lazer_globe
+    pin: GPIO22 #K15/*T29 ### TRIAC ####
+
+  - platform: gpio
+    name: "Exaustor"
+    icon: "mdi:fan"
+    id: relay1_lazer_barbecue_exhaust
+    pin: GPIO32   #K7 ### RELE ####
+
+  - platform: gpio
+    name: "Laser"
+    icon: "mdi:spotlight-beam"
+    id: relay6_lazer_laser
+    pin: GPIO13  #K4 ### RELE ####
+
+#--------------------------- SOMENTE D1 MINI -------------------
+#  - platform: gpio
+#    name: "Triac 9"
+#    id: triac_9
+#    pin: GPIO10 #K16/*T231
+
+##############################################################################
+
+#status_led:
+#  pin: GPIO2   # -> triac1_lazer_nocturnal_spots
+
+
+#output:
+#  # Register the blue LED as a dimmable output ....
+#  - platform: ledc
+#    id: led
+#    pin: GPIO2
+#    inverted: false
+
+#light:
+#  # ... and then make a light out of it.
+#  - platform: monochromatic
+#    name: "LED"
+#    output: led    
