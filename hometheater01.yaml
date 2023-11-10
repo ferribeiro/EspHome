@@ -1,0 +1,210 @@
+esphome:
+  name: hometheater01
+  friendly_name: hometheater01
+
+esp8266:
+  board: esp01_1m
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "9vymflUJYEoZyXTxET6e/oyFzHoYjU5NMhdUFNiyTwY="
+
+ota:
+  password: "b0c96fa375067d6a7bb2a87d39b9887f"
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  manual_ip:
+    static_ip: 192.168.0.221
+    gateway: 192.168.0.1
+    subnet: 255.255.255.0
+    dns1: 8.8.8.8
+    dns2: 192.168.0.1
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "hometheater01"
+    password: "12345678"
+
+captive_portal:
+
+##########################################################
+
+binary_sensor:
+
+  - platform: gpio
+    name: "Touchpad 1"
+    pin:
+      number: GPIO3
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      - light.toggle: relay_1
+
+  - platform: gpio
+    name: "Touchpad 2"
+    pin:
+      number: GPIO5
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      - light.toggle: relay_2
+  
+  - platform: gpio
+    name: "Touchpad 3"
+    pin:
+      number: GPIO4
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      - light.toggle: relay_3
+
+  - platform: status
+    name: "Status"
+
+##########################################################
+
+output:
+
+  - platform: gpio
+    id: "relay1"
+    pin: GPIO13
+
+  - platform: gpio
+    id: "relay2"
+    pin: GPIO12
+
+  - platform: gpio
+    id: relay3
+    pin: GPIO14
+  
+  # Register the blue LED as a dimmable output ....
+  - platform: esp8266_pwm
+    id: blue_led
+    pin: GPIO1
+    inverted: true
+
+##########################################################
+
+light:
+
+  - platform: binary
+    name: "Out 1"
+    id: relay_1
+    output: relay1
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "Out 2"
+    id: relay_2
+    output: relay2
+    icon: "mdi:lightbulb-spot"
+
+  - platform: binary
+    name: "Out 3"
+    id: relay_3
+    output: relay3
+    icon: "mdi:lightbulb-spot"
+
+  # ... and then make a light out of it.
+  - platform: monochromatic
+    name: "Blue LED"
+    output: blue_led
+
+###############################################################
+
+# Saidas do WizMote
+#  1 = on
+#  2 = off
+#  3 = Lua
+#  8 = -
+#  9 = +
+# 16 = 1
+# 17 = 2
+# 18 = 3
+# 19 = 4
+
+external_components:
+  - source: github://jesserockz/wizmote-esphome
+    components:
+      - esp_now
+      - wizmote
+
+esp_now:
+
+wizmote:
+  on_button:
+    if:
+      condition:
+        lambda: return data.button >= 1 && data.button <= 19;
+      then:
+        - homeassistant.event:
+            event: esphome.wizmote_choose
+            data:
+              mac: !lambda 'return format_hex(data.bssid, 6);'
+              button: !lambda 'return data.button - 0;'   # Retorna o Botão pressionado
+              sequence: !lambda 'return data.sequence;'   # numero vezes que algum comando foi enviado
+      else:
+        - homeassistant.event:
+            event: esphome.wizmote_action
+            data:
+              mac: !lambda 'return format_hex(data.bssid, 6);'
+              button: !lambda 'return data.button;'
+              sequence: !lambda 'return data.sequence;'
+
+
+# Exemplo de automação.
+
+# - id: '9999000009000'
+#   alias: 9000 - ESPHome Wizmote Receiver esc
+#   description: ''
+#   trigger:
+#   - platform: event
+#     event_type: esphome.wizmote_choose
+#     event_data:
+#       mac: 6c29900e5e24  #6C.29.90.0E.5E.24
+#   condition: []
+#   action:
+
+#   - variables:
+#       button: '{{ trigger.event.data.button | int }}'
+
+#       button1: '{{ trigger.event.data.sequence }}' # opcional
+#   - service: input_text.set_value                  # opcional
+#     data:                                          # opcional
+#       entity_id: input_text.wiz_mote               # opcional
+#       value: '{{ button1 }}'                       # opcional
+
+#   - choose:
+#     - conditions:
+#         - '{{ button | int == 16 }}'  # Botao 1
+#       sequence:
+#       - service: light.toggle
+#         entity_id:
+#         - light.office_light
+
+#     - conditions:
+#         - '{{ button | int == 17 }}'  # Botao 2
+#       sequence:
+#       - service: light.toggle
+#         entity_id:
+#         - light.office_downligt
+
+#   mode: restart
+    
