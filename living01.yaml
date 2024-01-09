@@ -37,12 +37,33 @@ wifi:
 
 captive_portal:
 
+# -------------------------------------- ESP8266 ----------------------------------------
+# | D1M | GPIO | Input |   Output   |                       Notes                       |
+# |-----|------|-------|------------|---------------------------------------------------|
+# |  D3 |  00  |  P-UP |    OK      | connected to FLASH bttn, BOOT FAILS if pulled LOW | P2-VM
+# |  TX |  01  | OK/TX |   *OK      | HIGH at boot, debug out boot, BOOT FAILS if P-LOW | not used in this prroject
+# |  D4 |  02  |  P-UP |  OK/LED    | HIGH at boot, board LED, BOOT FAILS if P-LOW      |
+# |  RX |  03  |  *OK  |  OK/RX     | HIGH at boot                                      |
+# |  D2 |  04  |   OK  |    OK      | often used as SDA (I2C)                           |
+# |  D1 |  05  |   OK  |    OK      | often used as SCL (I2C)                           |
+# |     |  06  |   X   |    X       | connected to FLASH chip, NOT recommended to use   |
+# |     |  09  |   X   |    X       | HIGH at boot                                      |
+# |     |  10  |   X   |    X       | HIGH at boot                                      |
+# |     |  11  |   X   |    X       | connected to FLASH chip, NOT recommended to use   |
+# |  D6 |  12  |   OK  |    OK      | SPI (MISO), can output a low signal at boot       |
+# |  D7 |  13  |   OK  |    OK      | SPI (MOSI), can output a low signal at boot       |
+# |  D5 |  14  |   OK  |    OK      | SPI (SCLK), can output a low signal at boot       |
+# |  D8 |  15  | P-GND |   *OK      | SPI (CS), BOOT FAILS if pulled HIGH               |
+# |  D0 |  16  | NoInt | No PWM/I2C | HIGH at boot, used to wake up from deep sleep     |
+# |  A0 | ADC0 | AD In |    X       | Analog Input only  0 to 3.3v                      |
+# ---------------------------------------------------------------------------------------
+
 ################################# BOTOES ###################################
 
-binary_sensor:   # ----------------BTN 1-----------
-  - platform: gpio
+binary_sensor:
+  - platform: gpio   # ----------------BTN 1-----------
     pin:
-      number: GPIO3
+      number: GPIO3 # RX VD-P2 com A.Optico
       mode:
         input: true
         pullup: true
@@ -75,9 +96,10 @@ binary_sensor:   # ----------------BTN 1-----------
          light.toggle: triac3_liv_back
 
 
-  - platform: gpio
+  - platform: gpio   # ----------------BTN 4-----------
     pin:
-      number: GPIO5   # ----------------BTN 4-----------
+#      number: GPIO5 # D1 AM-P2 com R2 montado (Bomba)
+      number: GPIO0 # D3 VM-P2 (Bomba) {connected to FLASH bttn, BOOT FAILS if pulled LOW} **** Teste GPIO5 <=> GPIO0
       mode:
         input: true
         pullup: true
@@ -87,9 +109,9 @@ binary_sensor:   # ----------------BTN 1-----------
 #      - light.toggle: triac6_s_garden_pot_pump
       - switch.toggle: triac6_side_garden_pot_pump
 
-  - platform: gpio
+  - platform: gpio   # ----------------BTN 5-----------
     pin:
-      number: GPIO4   # ----------------BTN 5-----------
+      number: GPIO4 # D2 BR-P2 (luzes solo/muro)
       mode:
         input: true
         pullup: true
@@ -156,23 +178,24 @@ light:
 output:
   - platform: gpio
     id: triac1_living_stairs
-    pin: GPIO15
+#    pin: GPIO0 # D3 VM-P2 {connected to FLASH bttn, BOOT FAILS if pulled LOW}
+    pin: GPIO5 # D1 AM-P2 com R2 montado  **** Teste GPIO5 <=> GPIO0
 
   - platform: gpio
     id: triac2_living_right
-    pin: GPIO13
+    pin: GPIO13 # D7 BR-P1
 
   - platform: gpio
     id: triac3_living_back
-    pin: GPIO12
+    pin: GPIO12 # D6 VM-P1
 
   - platform: gpio
     id: triac4_right_wall
-    pin: GPIO02
+    pin: GPIO02 # D4 PT-P2 {HIGH at boot, board LED, BOOT FAILS if P-LOW}
 
   - platform: gpio
     id: triac5_side_garden_soil_spots
-    pin:  GPIO14
+    pin:  GPIO14 # D5 PT-P1
 
  # - platform: gpio
  #   id: triac6_side_garden_pot_pump
@@ -185,4 +208,5 @@ switch:
     name: "bomba dos vasos jardim lateral"
     icon: "mdi:fan"
     id: triac6_side_garden_pot_pump
-    pin: GPIO16
+#    pin: GPIO16 # D0 LR-P2 com R3 montado
+    pin: GPIO15 # D8 AM-P1    => AZ-P2 (LED) com R6 Montado
