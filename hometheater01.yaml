@@ -37,8 +37,27 @@ wifi:
     password: "12345678"
 
 captive_portal:
-
-##########################################################
+  
+# -------------------------------------- ESP8266 ----------------------------------------
+# | D1M | GPIO | Input |   Output   |                       Notes                       |
+# |-----|------|-------|------------|---------------------------------------------------|
+# |  D3 |  00  |  P-UP |    OK      | connected to FLASH bttn, BOOT FAILS if pulled LOW |
+# |  TX |  01  | OK/TX |   *OK      | HIGH at boot, debug out boot, BOOT FAILS if P-LOW |
+# |  D4 |  02  |  P-UP |  OK/LED    | HIGH at boot, board LED, BOOT FAILS if P-LOW      |
+# |  RX |  03  |  *OK  |  OK/RX     | HIGH at boot                                      |
+# |  D2 |  04  |   OK  |    OK      | often used as SDA (I2C)                           |
+# |  D1 |  05  |   OK  |    OK      | often used as SCL (I2C)                           |
+# |     |  06  |   X   |    X       | connected to FLASH chip, NOT recommended to use   |
+# |     |  09  |   X   |    X       | HIGH at boot                                      |
+# |     |  10  |   X   |    X       | HIGH at boot                                      |
+# |     |  11  |   X   |    X       | connected to FLASH chip, NOT recommended to use   |
+# |  D6 |  12  |   OK  |    OK      | SPI (MISO), can output a low signal at boot       |
+# |  D7 |  13  |   OK  |    OK      | SPI (MOSI), can output a low signal at boot       |
+# |  D5 |  14  |   OK  |    OK      | SPI (SCLK), can output a low signal at boot       |
+# |  D8 |  15  | P-GND |   *OK      | SPI (CS), BOOT FAILS if pulled HIGH               |
+# |  D0 |  16  | NoInt | No PWM/I2C | HIGH at boot, used to wake up from deep sleep     |
+# |  A0 | ADC0 | AD In |    X       | Analog Input only  0 to 3.3v                      |
+# ---------------------------------------------------------------------------------------
 
 binary_sensor:
 
@@ -171,8 +190,8 @@ wizmote:
 
 # Exemplo de automação.
 
-# - id: '9999000009000'
-#   alias: 9000 - ESPHome Wizmote Receiver esc
+# - id: '8000000008001'
+#   alias: 8001 - ESPHome Wizmote Receiver esc
 #   description: ''
 #   trigger:
 #   - platform: event
@@ -197,14 +216,39 @@ wizmote:
 #       sequence:
 #       - service: light.toggle
 #         entity_id:
-#         - light.office_light
+#         - light.hometheater01_out_1
 
 #     - conditions:
 #         - '{{ button | int == 17 }}'  # Botao 2
 #       sequence:
 #       - service: light.toggle
 #         entity_id:
-#         - light.office_downligt
+#         - light.hometheater01_out_2
+
+#     - conditions:
+#         - '{{ button | int == 18 }}'  # Botao 3
+#       sequence:
+#       - service: light.toggle
+#         entity_id:
+#         - light.hometheater01_out_3
+
+#     - conditions:
+#         - '{{ button | int == 2 }}'  # Botao OFF
+#       sequence:
+#       - service: light.turn_off
+#         entity_id:
+#         - light.hometheater01_out_1
+#         - light.hometheater01_out_2
+#         - light.hometheater01_out_3
+
+#     - conditions:
+#         - '{{ button | int == 1 }}'  # Botao OFF
+#       sequence:
+#       - service: light.turn_on
+#         entity_id:
+#         - light.hometheater01_out_1
+#         - light.hometheater01_out_2
+#         - light.hometheater01_out_3
 
 #   mode: restart
     
