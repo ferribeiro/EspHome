@@ -60,7 +60,7 @@ captive_portal:
 
 # -------------------------------------- OFFICE01 ---------------------------------------
 # |  D0 |  16  |  IN              | Entrada com A/O interruptor da bancada              |
-# |  D3 |  00  |  IN              | Interruptor Luz Escritorio                          |
+# |  D3 |  00  |  IN              | Interruptor 1 Luz Escritorio & Multi  (parede)      |
 # |     |  10  |  IN              | Interruptor Pententes                               |
 # |  D6 |  12  |  IN              | SInterruptor Exaustor                               |
 # |  D2 |  04  | OUT              | Triac 4 - Luz Escritorio                            |
@@ -72,7 +72,7 @@ captive_portal:
 
 output:
   
-  # Register the blue LED as a dimmable output ....
+  # Register the blue LED as a dimmable output
   - platform: esp8266_pwm
     id: onboard_led
     pin:
@@ -99,6 +99,7 @@ output:
     id: "triac14"   #Externo
     pin: GPIO14
 
+
 light:
 
   # make a light out of it.
@@ -108,47 +109,157 @@ light:
     id: led
 
   - platform: binary
-    name: "Out 1"
+    name: "Out 4 - Luz Parede" # Luz Escritorio
     id: triac_04
     output: triac04
     icon: "mdi:lightbulb-spot"
 
   - platform: binary
-    name: "Out 2"
+    name: "Out 5 - Pendentes" # Luz Pendentes Escritorio
     id: triac_05
     output: triac05
     icon: "mdi:lightbulb-spot"
 
-#  - platform: binary
-#    name: "Out 3"
-#    id: relay_15
-#    output: relay15
-#    icon: "mdi:fan"
-
   - platform: binary
-    name: "Out 4"
+    name: "Out 13 - Bancada"  # Luz Bancada Escritorio
     id: triac_13
     output: triac13
     icon: "mdi:lightbulb-spot"
 
   - platform: binary
-    name: "Out 5"
+    name: "Out 14 - Armario"  # Luz Armario Escritorio
     id: triac_14
     output: triac14
     icon: "mdi:lightbulb-spot"
 
 
-
-
-
 switch:
 
   - platform: gpio
-    name: "Exaustor"
+    name: "Out15 - Exaustor"
     icon: "mdi:fan"
     id: relay3_exhaust
     pin: GPIO15
 
 
+sensor:
+      
+  - platform: uptime
+    name: "Uptime"
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+    
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
 
 
+
+binary_sensor:
+  - platform: status
+    name: "Status"
+
+
+  - platform: gpio   # ---------------- BTN 1 (Porta) -----------
+    pin:
+      number: GPIO0 # Vermelho-CN3
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "BTN1-Porta"
+#------------------------------------------------
+    on_multi_click:
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+           - light.toggle: triac_04 #Luz Escritorio
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+          light.toggle: triac_13  # Luz Bancada
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 50ms
+        then:
+         light.toggle: triac_14  # Luz Armario
+
+  - platform: gpio   # ----------------BTN 2 (Porta) -----------
+    pin:
+      number: GPIO10 # Azul-CN3
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "BTN2-Porta"
+    on_press:
+      - light.toggle: triac_05 # Pendentes
+
+  - platform: gpio   # ----------------BTN 3 (Porta) -----------
+    pin:
+      number: GPIO12 # Laranja-CN2
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "BTN3-Porta"
+    on_press:
+      - switch.toggle: relay3_exhaust # Exaustor
+
+  - platform: gpio   # ----------------BTN 4 (Bancada) -----------
+    pin:
+      number: GPIO16 # Branco-CN3
+      mode:
+        input: true
+  #      pullup: true  # GPIO16 não suporta pullup
+      inverted: true
+    name: "BTN4-Bancada"
+
+    on_multi_click:
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+           - light.toggle: triac_13 # Luz Bancada
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+          light.toggle: triac_04 # Luz Escritorio
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 50ms
+        then:
+         light.toggle: triac_05 # Pendentes
+
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for 40ms to 300ms
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+         light.toggle: triac_14  # Luz Armario
