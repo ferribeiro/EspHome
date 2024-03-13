@@ -1,5 +1,6 @@
 esphome:
-  name: h2o-flux-meter
+  name: tst-ir-rec
+  friendly_name: tst-ir-rec
 
 esp8266:
   board: esp01_1m
@@ -14,17 +15,17 @@ logger:
 # Enable Home Assistant API
 api:
   encryption:
-    key: "MqB6bhrQvk0Vn3p6tyjbnzJqvEJ6u5GyfcfXzhneyCo="
+    key: "rwfjCvcdlq/MQYyG903d2i6w28C42u2DDe1USHF3E2E="
 
 ota:
-  password: "28e1097d5e7b8527b177f6a5c3573e42"
+  password: "923b4e7dfccade9ad62056002fa4905b"
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
   manual_ip:
-    static_ip: 192.168.0.212 # era .162
+    static_ip: 192.168.0.250
     gateway: 192.168.0.1
     subnet: 255.255.255.0
     dns1: 8.8.8.8
@@ -32,10 +33,10 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "h2o-flux-meter"
+    ssid: "tstirrec"
     password: "12345678"
 
-#captive_portal:
+captive_portal:
 
 # -------------------------------------- ESP8266 ----------------------------------------
 # | D1M | GPIO | Input |   Output   |                       Notes                       |
@@ -58,37 +59,52 @@ wifi:
 # |  A0 | ADC0 | AD In |    X       | Analog Input only  0 to 3.3v                      |
 # ---------------------------------------------------------------------------------------
 
-#binary_sensor:
-#  - platform: gpio
-#    pin:
-#      number: GPIO15
-#      mode: INPUT_PULLUP
-#      inverted: False
-#    name: "Pump"
-#    device_class: power
-##    filters:
-##      - delayed_on: 10ms
+remote_receiver:
+  pin:
+    number: GPIO4
+    inverted: true
+    mode:
+      input: true
+      pullup: true
+  #dump: all
+  #dump: raw
+  dump: panasonic
+  # [remote.panasonic:070] Received Panasonic: address=0x4004, command=0x011200BC
+  #dump: nec
+  #dump: aeha
+  # [remote.aeha:099] Received AEHA: address=0x4004, data=[0x01,0x12,0x00,0xBC,0xAF] ok para projetor.
+
+  # high 55% tolerance is recommended for some remote control units
+  id: rcvr
+  tolerance: 55%
+
+climate:
+  #- platform: coolix #Ar do escritorio
+  - platform: climate_ir_lg
+    name: "Home Theater AC"
+    receiver_id: rcvr
 
 
-sensor:
-  - platform: pulse_counter
-    pin: GPIO4
-    unit_of_measurement: 'l/min'
-    id: water_usage
-    name: 'Fluxo de água'
-    update_interval: 5s
-    filters:
-      - lambda: return (x / 330); # 396 = 5,5 * 60 (https://www.openhacks.com/uploadsproductos/g3_4_water_flow_sensor_-_wiki.pdf)
-#      - lambda: return (x / 396); # 396 = 6,6 * 60
-  - platform: integration
-    name: "Consumo total (litros)"
-    unit_of_measurement: 'l'
-    sensor: water_usage
-    time_unit: min
-  - platform: integration
-    name: "Consumo total (metros cúbicos)"
-    unit_of_measurement: 'm3'
-    sensor: water_usage
-    time_unit: min
-    filters:
-      - lambda: return (x / 1000);
+
+# https://t-vk.github.io/Tasmota-IR-Code-Converter/ # Converte pronto data to tasmota.
+
+remote_transmitter:
+  pin: GPIO5
+  carrier_duty_percent: 50%
+#Adding a switch button to Lovelace to trigger:
+switch:
+  - platform: template
+    name: Raw Code Power Button
+    turn_on_action:
+      - remote_transmitter.transmit_pronto:
+          data: "0000 006D 003A 0000 0086 0042 0011 0010 0011 0031 0010 0011 0011 0010 0010 0011 0010 0011 0011 0010 0010 0011 0010 0011 0010 0011 0010 0011 0010 0011 0010 0011 0011 0031 0011 0010 0011 0010 0011 0010 0010 0011 0011 0010 0011 0010 0011 0010 0010 0011 0011 0010 0011 0031 0011 0010 0010 0011 0011 0010 0011 0031 0011 0010 0011 0010 0010 0032 0011 0010 0011 0010 0011 0010 0011 0010 0010 0011 0011 0011 0011 0010 0010 0011 0010 0011 0011 0031 0011 0010 0011 0031 0011 0031 0011 0031 0012 0031 0011 0010 0011 0010 0011 0031 0012 0010 0011 0031 0012 0010 0011 0031 0012 0031 0013 002F 0013 0030 0011 0180 06C3"
+
+
+
+
+#----------------------------------------------------------------
+
+light:
+  - platform: status_led
+    name: "Switch state"
+    pin: GPIO2

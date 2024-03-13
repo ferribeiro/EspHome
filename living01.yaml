@@ -41,7 +41,7 @@ captive_portal:
 # | D1M | GPIO | Input |   Output   |                       Notes                       |
 # |-----|------|-------|------------|---------------------------------------------------|
 # |  D3 |  00  |  P-UP |    OK      | connected to FLASH bttn, BOOT FAILS if pulled LOW | P2-VM
-# |  TX |  01  | OK/TX |   *OK      | HIGH at boot, debug out boot, BOOT FAILS if P-LOW | not used in this prroject
+# |  TX |  01  | OK/TX |   *OK      | HIGH at boot, debug out boot, BOOT FAILS if P-LOW | not used in this project
 # |  D4 |  02  |  P-UP |  OK/LED    | HIGH at boot, board LED, BOOT FAILS if P-LOW      |
 # |  RX |  03  |  *OK  |  OK/RX     | HIGH at boot                                      |
 # |  D2 |  04  |   OK  |    OK      | often used as SDA (I2C)                           |

@@ -276,7 +276,7 @@ light:
   - platform: binary
     name: "Holofotes Jardim"
     id: relay5_lazer_garden_spotlight
-    output: relay4_garden_spotlight
+    output: relay4_garden_spotlight   #????? pode ter um erro.
     icon: "mdi:light-flood-down"
 
 # -------------------------------------
