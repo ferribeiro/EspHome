@@ -1,0 +1,77 @@
+substitutions:
+  name: esp32-bluetooth-proxy
+  friendly_name: Bluetooth Proxy
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: true
+  
+  project:
+    name: esphome.bluetooth-proxy
+    version: "1.0"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+improv_serial:
+
+web_server:
+  port: 80
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "U2uTRQIRs7rsir4c8Txp/bEJwbXUL2WgW3z+BGLx6hw="
+
+ota:
+  password: "8ecfceafd4fd5527480251e496e25082"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+ # manual_ip:
+ #   static_ip: 192.168.0.110
+ #   gateway: 192.168.0.1
+ #   subnet: 255.255.255.0
+ #   dns1: 8.8.8.8
+ #   dns2: 192.168.0.1
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "bluethotproxy"
+    password: "bluethotproxy"
+
+captive_portal:
+
+dashboard_import:
+  package_import_url: github://esphome/bluetooth-proxies/esp32-generic.yaml@main
+
+esp32_ble_tracker:
+  scan_parameters:
+    # We currently use the defaults to ensure Bluetooth
+    # can co-exist with WiFi In the future we may be able to
+    # enable the built-in coexistence logic in ESP-IDF
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+#button:
+#- platform: safe_mode
+#  name: Safe Mode Boot
+#  entity_category: diagnostic
+
+#status_led:
+#  pin: GPIO2
+
+output:
+  - platform: slow_pwm
+    pin: GPIO32
+    id: my_slow_pwm
+    period: 500ms

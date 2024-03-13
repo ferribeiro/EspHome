@@ -1,0 +1,58 @@
+esphome:
+  name: wiz-mote-receiver
+  friendly_name: wiz mote receiver
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "50b5mhA5Nh1Lqel7fdMuiuWZAsURcDwVmzgMWL7yo7o="
+
+ota:
+  password: "667313a682f76efda3d065450943eae0"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Wiz-Mote-Receiver"
+    password: "3FqVzRHosSz8"
+
+captive_portal:
+
+external_components:
+  - source: github://jesserockz/wizmote-esphome
+    components:
+      - esp_now
+      - wizmote
+
+esp_now:
+
+wizmote:
+  on_button:
+    if:
+      condition:
+        lambda: return data.button >= 16 && data.button <= 19;
+      then:
+        - homeassistant.event:
+            event: esphome.wizmote_choose
+            data:
+              mac: !lambda 'return format_hex(data.bssid, 6);'
+              button: !lambda 'return data.button - 15;'
+              sequence: !lambda 'return data.sequence;'
+      else:
+        - homeassistant.event:
+            event: esphome.wizmote_action
+            data:
+              mac: !lambda 'return format_hex(data.bssid, 6);'
+              button: !lambda 'return data.button;'
+              sequence: !lambda 'return data.sequence;'

@@ -1,0 +1,31 @@
+esphome:
+  name: bluetooth-proxy-c360bc
+  friendly_name: Bluetooth Proxy c360bc
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "AbTYjduI5J+aLXZZNAZfIAmril/k+qH6JvIfySsVMng="
+
+ota:
+  password: "f887cb29d2b8f250c233aa381b168c26"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Bluetooth-Proxy-C360Bc"
+    password: "yD0G57httP67"
+
+captive_portal:
+    
