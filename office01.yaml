@@ -46,10 +46,12 @@ captive_portal:
 # |  RX |  03  |  *OK  |  OK/RX     | HIGH at boot                                      |
 # |  D2 |  04  |   OK  |    OK      | often used as SDA (I2C)                           |
 # |  D1 |  05  |   OK  |    OK      | often used as SCL (I2C)                           |
-# |     |  06  |   X   |    X       | connected to FLASH chip, NOT recommended to use   |
-# |     |  09  |   X   |    X       | HIGH at boot                                      |
-# |     |  10  |   X   |    X       | HIGH at boot                                      |
-# |     |  11  |   X   |    X       | connected to FLASH chip, NOT recommended to use   |
+# |     | *06  |   X   |    X       | NOT WORK on ESPHome, connected to FLASH chip      |
+# |     | *07  |   X   |    X       | NOT WORK on ESPHome, connected to FLASH chip      |
+# |     | *08  |   X   |    X       | NOT WORK on ESPHome, connected to FLASH chip      |
+# |     | *09  |   X   |    X       | NOT WORK on ESPHome, HIGH at boot                 |
+# |     | ?10  |   ?   |    ?       | *NOT recommended to use, HIGH at boot*            |
+# |     | *11  |   X   |    X       | NOT WORK on ESPHome, connected to FLASH chip      |
 # |  D6 |  12  |   OK  |    OK      | SPI (MISO), can output a low signal at boot       |
 # |  D7 |  13  |   OK  |    OK      | SPI (MOSI), can output a low signal at boot       |
 # |  D5 |  14  |   OK  |    OK      | SPI (SCLK), can output a low signal at boot       |
@@ -61,8 +63,8 @@ captive_portal:
 # -------------------------------------- OFFICE01 ---------------------------------------
 # |  D0 |  16  |  IN              | Entrada com A/O interruptor da bancada              |
 # |  D3 |  00  |  IN              | Interruptor 1 Luz Escritorio & Multi  (parede)      |
-# |     |  10  |  IN              | Interruptor Pententes                               |
-# |  D6 |  12  |  IN              | SInterruptor Exaustor                               |
+# |     | *10  |  IN              | Interruptor Pendentes                               |
+# |  D6 |  12  |  IN              | Interruptor Exaustor                                |
 # |  D2 |  04  | OUT              | Triac 4 - Luz Escritorio                            |
 # |  D1 |  05  | OUT              | Triac 5 - Luz Pendentes                             |
 # |  D8 |  15  | OUT              | Rele 15 - Exaustor                                  |
@@ -76,28 +78,26 @@ output:
   - platform: esp8266_pwm
     id: onboard_led
     pin:
-      number: GPIO2
+      number: GPIO2 # Led Módulo
       inverted: true
 
-  - platform: gpio
+  - platform: gpio # TRIAC On-Board
     id: "triac04"
+    pin: GPIO5
+
+  - platform: gpio # TRIAC On-Board
+    id: "triac05"
     pin: GPIO4
 
   - platform: gpio
-    id: "triac05"
-    pin: GPIO5
-
-#  - platform: gpio
-#    id: "relay15"
-#    pin: GPIO15
-
-  - platform: gpio
-    id: "triac13"   #Externo
+    id: "triac13"   # TRIAC Externo (Fio Azul CN2)
     pin: GPIO13
+    inverted: true
 
   - platform: gpio
-    id: "triac14"   #Externo
+    id: "triac14"   # TRIAC Externo (Fio Verde CN2)
     pin: GPIO14
+    inverted: true
 
 
 light:
@@ -136,7 +136,7 @@ light:
 switch:
 
   - platform: gpio
-    name: "Out15 - Exaustor"
+    name: "Out15 - Exaustor" # Rele On-Board
     icon: "mdi:fan"
     id: relay3_exhaust
     pin: GPIO15
@@ -169,7 +169,7 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
-    name: "BTN1-Porta"
+    name: "BTN1-GPIO0-Porta"
 #------------------------------------------------
     on_multi_click:
       - timing:
@@ -203,7 +203,7 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
-    name: "BTN2-Porta"
+    name: "BTN2-GPIO10-Porta"
     on_press:
       - light.toggle: triac_05 # Pendentes
 
@@ -214,7 +214,7 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
-    name: "BTN3-Porta"
+    name: "BTN3-GPIO12-Porta"
     on_press:
       - switch.toggle: relay3_exhaust # Exaustor
 
@@ -225,7 +225,7 @@ binary_sensor:
         input: true
   #      pullup: true  # GPIO16 não suporta pullup
       inverted: true
-    name: "BTN4-Bancada"
+    name: "BTN4-GPIO16-Bancada"
 
     on_multi_click:
       - timing:
